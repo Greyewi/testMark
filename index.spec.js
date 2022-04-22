@@ -1,6 +1,12 @@
 const puppeteer = require('puppeteer');
+const path = require('path')
+jest.setTimeout(1_600_000)
 
-jest.setTimeout(160000)
+function randomNumber(min, max) {
+  return Math.round(Math.random() * (max - min) + min);
+}
+
+const COUNT_ITERATION = 5
 
 describe('cardValid', () => {
   let browser = null;
@@ -9,7 +15,7 @@ describe('cardValid', () => {
   beforeAll(async () => {
     browser = await puppeteer.launch({
       headless: false, // show gui
-      slowMo: 50,
+      slowMo: 150,
       devtools: false, // show devTools
     });
     page = await browser.newPage();
@@ -19,44 +25,24 @@ describe('cardValid', () => {
     await browser.close();
   });
 
-  it('should be unvalid card', async () => {
-    await page.goto("file:///Users/greyewi/WebstormProjects/ahjtest/index.html")
-    await page.type('input', '123456')
-    await page.click('button')
-    const searchString = await page.$("#algoritm_validation")
-    const value = await page.evaluate(el => el.textContent, searchString)
-    await expect(value).toMatch('false')
-  })
-  it('should be valid card', async () => {
-    await page.goto("file:///Users/greyewi/WebstormProjects/ahjtest/index.html")
-    await page.type('input', '371449635398431')
-    await page.click('button')
-    const searchString = await page.$("#algoritm_validation")
-    const value = await page.evaluate(el => el.textContent, searchString)
-    await expect(value).toMatch('true')
-  })
-  it('should be unvalid payment system', async () => {
-    await page.goto("file:///Users/greyewi/WebstormProjects/ahjtest/index.html")
-    await page.type('input', '123456')
-    await page.click('button')
-    const searchString = await page.$("#paymentsystem_validation")
-    const value = await page.evaluate(el => el.textContent, searchString)
-    await expect(value).toMatch('Card isn`t valid')
-  })
-  it('should be valid payment system', async () => {
-    await page.goto("file:///Users/greyewi/WebstormProjects/ahjtest/index.html")
-    const cardArray = [{number:'371449635398431',name: 'American Express'},{number:'5555555555554444',name:'Mastercard'},
-    {number:'4111111111111111',name: 'Visa'},{number:'2221000838255148',name:'МИР'}]
-    for (const card of cardArray) {
-      await page.evaluate(() => {
-        const example = document.querySelector('input')
-        example.value = '';
-      });
-      await page.type('input', card.number)
-      await page.click('button')
-      const searchString = await page.$("#paymentsystem_validation")
-      const value = await page.evaluate(el => el.textContent, searchString)
-      await expect(value).toMatch(card.name)
+  it('test', async () => {
+
+    for(let i = 0; i < COUNT_ITERATION; i++){
+      try {
+        await page.goto('https://ru.surveymonkey.com/r/TN7T2QP')
+        const random = randomNumber(0, 1)
+        if (random) {
+          const number = await page.$('span[data-position="6"]')
+          await number.click()
+        } else {
+          const number = await page.$('span[data-position="9"]')
+          await number.click()
+        }
+        const btn = await page.$(".btn.small.done-button.survey-page-button.user-generated.notranslate")
+        await btn.click()
+      } catch(e) {
+        console.log(e)
+      }
     }
   })
 })
